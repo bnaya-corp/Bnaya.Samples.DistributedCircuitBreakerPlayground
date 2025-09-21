@@ -2,6 +2,9 @@
 using Polly.CircuitBreaker;
 using Polly.Retry;
 using Polly.Simmy;
+using System.Text;
+
+Console.OutputEncoding = Encoding.UTF8;
 
 // 2% of all requests will be injected with chaos fault.
 const double FAULT_INJECTION_RATE = 0.30;
@@ -12,7 +15,6 @@ const double OUTCOME_INJECTION_RATE = 0.10;
 // injected a custom behavior.
 const double BEHAVIOR_INJECTION_RATE = 0.20;
 
-Console.WriteLine("Starting Distributed Circuit Breaker Playground");
 
 var builder = new ResiliencePipelineBuilder<HttpResponseMessage>();
 // First, configure regular resilience strategies
@@ -26,7 +28,7 @@ builder
                     .Handle<Exception>(ex => ex is not BrokenCircuitException),
                 OnRetry = (args) => 
                 {
-                    Console.WriteLine("Retry");
+                    Console.Write(" 🔄 ");
                     return ValueTask.CompletedTask;
                 }
             })
@@ -37,18 +39,19 @@ builder
                     MinimumThroughput = 5,
                     SamplingDuration = TimeSpan.FromSeconds(1),OnOpened = (args) => 
                     {
-                        Console.WriteLine("Circuit Breaker - On Opened");
+                        Console.Write(" ✋ ");
+                        Console.WriteLine();
                         return ValueTask.CompletedTask;
                     },
                     Name = "PlaygroundCircuitBreaker",                    
                     OnClosed = (args) => 
                     {
-                        Console.WriteLine("Circuit Breaker - On Closed");
+                        Console.Write(" 🔗 ");
                         return ValueTask.CompletedTask;
                     },  
                     OnHalfOpened = (args) => 
                     {
-                        Console.WriteLine("Circuit Breaker - On Half Opened");
+                        Console.WriteLine(" 🧪 ");
                         return ValueTask.CompletedTask;
                     }
     })
@@ -79,17 +82,20 @@ while(true)
     {
         await combinedPolicy.ExecuteAsync(DOAsync);
     }
-    catch (Exception ex)
+    catch (BrokenCircuitException ex)
     {
-        Console.WriteLine($"Operation failed: {ex.Message}: {ex.GetType().Name}");
+        Console.Write("✗");
+    }
+    catch (InvalidOperationException ex)
+    {
+        Console.Write(" ~😣~ ");
     }
 }
 
-Console.WriteLine("Application completed");
 
 static async Task<HttpResponseMessage> DOAsync()
 {
-    Console.WriteLine("DOAsync completed successfully");
+    Console.Write("✓.");
     return await Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
 }
 
