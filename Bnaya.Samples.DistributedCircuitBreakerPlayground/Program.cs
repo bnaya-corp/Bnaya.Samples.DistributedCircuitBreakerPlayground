@@ -21,7 +21,9 @@ builder
             {
                 MaxRetryAttempts = 2,                
                 Delay = TimeSpan.FromMilliseconds(10), 
-                BackoffType = DelayBackoffType.Constant, 
+                BackoffType = DelayBackoffType.Constant,
+                ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                    .Handle<Exception>(ex => ex is not BrokenCircuitException),
                 OnRetry = (args) => 
                 {
                     Console.WriteLine("Retry");
