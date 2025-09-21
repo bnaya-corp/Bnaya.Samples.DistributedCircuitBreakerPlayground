@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Bnaya.Samples.DistributedCircuitBreakerPlayground": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
