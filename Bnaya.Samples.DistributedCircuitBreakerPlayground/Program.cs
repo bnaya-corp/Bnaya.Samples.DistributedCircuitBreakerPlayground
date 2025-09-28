@@ -1,4 +1,9 @@
-﻿using Polly;
+﻿// Resources:
+// - Circuit breaker resilience strategy: https://www.pollydocs.org/strategies/circuit-breaker.html
+// - When you use the Polly circuit-breaker, make sure you share your Policy instances!:
+//   https://andrewlock.net/when-you-use-the-polly-circuit-breaker-make-sure-you-share-your-policy-instances-2/
+
+using Polly;
 using Polly.CircuitBreaker;
 using Polly.Retry;
 using Polly.Simmy;
