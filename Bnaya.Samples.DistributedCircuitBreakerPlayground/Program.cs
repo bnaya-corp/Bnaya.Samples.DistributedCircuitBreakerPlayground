@@ -11,6 +11,17 @@ using System.Text;
 
 Console.OutputEncoding = Encoding.UTF8;
 
+Console.WriteLine("""
+    ✓: Successful Call
+    🔄: Retry
+    ✋: Circuit Breaker Opened
+    🔗: Circuit Breaker Closed
+    🧪: Circuit Breaker Half-Opened
+    ✗: Broken Circuit Exception
+    😣: Invalid Operation Exception (injected by chaos strategy)
+    ==========================================================================
+    """);
+
 // 2% of all requests will be injected with chaos fault.
 const double FAULT_INJECTION_RATE = 0.30;
 // inject a latency.
@@ -33,30 +44,31 @@ builder
                     .Handle<Exception>(ex => ex is not BrokenCircuitException),
                 OnRetry = (args) => 
                 {
-                    Console.Write(" 🔄 ");
+                    Console.Write("🔄");
                     return ValueTask.CompletedTask;
                 }
             })
     .AddCircuitBreaker(new CircuitBreakerStrategyOptions<HttpResponseMessage> 
                 {
-                    BreakDuration = TimeSpan.FromSeconds(4),
+                    BreakDuration = TimeSpan.FromSeconds(1),
                     FailureRatio = 0.2,
                     MinimumThroughput = 5,
-                    SamplingDuration = TimeSpan.FromSeconds(1),OnOpened = (args) => 
+                    SamplingDuration = TimeSpan.FromSeconds(1),
+                    OnOpened = (args) => 
                     {
-                        Console.Write(" ✋ ");
-                        Console.WriteLine();
+                        Console.Write("✋ ");
+                        //Console.WriteLine();
                         return ValueTask.CompletedTask;
                     },
                     Name = "PlaygroundCircuitBreaker",                    
                     OnClosed = (args) => 
                     {
-                        Console.Write(" 🔗 ");
+                        Console.Write("🔗 ");
                         return ValueTask.CompletedTask;
                     },  
                     OnHalfOpened = (args) => 
                     {
-                        Console.WriteLine(" 🧪 ");
+                        Console.Write("🧪");
                         return ValueTask.CompletedTask;
                     }
     })
@@ -93,14 +105,14 @@ while(true)
     }
     catch (InvalidOperationException ex)
     {
-        Console.Write(" ~😣~ ");
+        Console.Write("😣");
     }
 }
 
 
 static async Task<HttpResponseMessage> DOAsync()
 {
-    Console.Write("✓.");
+    Console.Write("✓");
     return await Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK));
 }
 
